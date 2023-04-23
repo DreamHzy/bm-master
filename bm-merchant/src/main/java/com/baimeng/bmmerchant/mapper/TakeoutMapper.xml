@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baimeng.bmmerchant.mapper.TakeoutMapper">
+
+    <select id="selectVisitList" resultType="com.baimeng.bmmerchant.model.vo.VisitListVO">
+        SELECT COUNT(b1.number) AS takeoutNumber,
+        SUM(b1.return_money) AS rebateSum,
+        COUNT(CASE WHEN b1.taste_multiple = 0 THEN 1 END) AS normalTaste,
+        COUNT(CASE WHEN b1.taste_multiple = 1 THEN 1 END) AS tasteTooLight,
+        COUNT(CASE WHEN b1.taste_multiple = 2 THEN 1 END) AS tasteToHot,
+        COUNT(CASE WHEN b1.taste_multiple = 3 THEN 1 END) AS tasteToSalty,
+        COUNT(CASE WHEN b1.weight_multiple = 0 THEN 1 END) AS normal,
+        COUNT(CASE WHEN b1.weight_multiple = 1 THEN 1 END) AS fishFew,
+        COUNT(CASE WHEN b1.weight_multiple = 2 THEN 1 END) AS vegetablesFew,
+        COUNT(CASE WHEN b1.abnormal_multiple = 0 THEN 1 END) AS noException,
+        COUNT(CASE WHEN b1.abnormal_multiple = 1 THEN 1 END) AS haveException,
+        COUNT(CASE WHEN b1.abnormal_multiple = 2 THEN 1 END) AS haveHair,
+
+        COUNT(CASE WHEN b1.omission = 0 THEN 1 END) AS omissionNull,
+        COUNT(CASE WHEN b1.omission = 1 THEN 1 END) AS omissionMain,
+        COUNT(CASE WHEN b1.omission = 2 THEN 1 END) AS omissionTableware,
+
+        COUNT(CASE WHEN b1.abnormal_multiple = 3 THEN 1 END) AS havecockroach,
+        COUNT(CASE WHEN b1.phone_disgust = 0 THEN 1 END) AS phoneDisgustYes,
+        COUNT(CASE WHEN b1.phone_disgust = 1 THEN 1 END) AS phoneDisgustNo,
+        COUNT(CASE WHEN b1.good_intentions = 0 THEN 1 END) AS goodIntentionsYes,
+        COUNT(CASE WHEN b1.good_intentions = 1 THEN 1 END) AS goodIntentionsNo,
+        COUNT(CASE WHEN b1.takeout_platform = 0 THEN 1 END) AS elmTotalNumber,
+        COUNT(CASE WHEN b1.takeout_platform = 1 THEN 1 END) AS mtTotalNumber
+        FROM b_new_takeout b1
+        <where>
+            <if test="date !=null and date !=''">AND  b1.create_day = #{date}</if>
+            <if test="storeNo !=null and storeNo !=''">AND b1.store_no = #{storeNo}</if>
+            AND b1.state = '0'
+        </where>
+
+    </select>
+
+    <select id="selectVisitDetails" resultType="com.baimeng.bmmerchant.model.dto.VisitDetailsListDTO">
+        SELECT
+        b1.new_takeout_id AS newtakeoutId ,
+        b1.takeout_date AS inputDate,
+        b1.takeout_platform AS takeoutPlatform,
+        b1.number AS takeoutNumber,
+        b1.takeout_feedback AS takeoutFeedback,
+        CASE
+        WHEN b1.return_money = '0.00' THEN 0
+        WHEN b1.return_money = '3.00' THEN 3
+        WHEN b1.return_money = '5.00' THEN 5
+        WHEN b1.return_money = '10.00' THEN 10
+        END returnMoney,
+        CASE
+        WHEN b1.taste_multiple = '0' THEN 0
+        WHEN b1.taste_multiple = '1' THEN 1
+        WHEN b1.taste_multiple = '2' THEN 2
+        WHEN b1.taste_multiple = '3' THEN 3
+        END tasteMultiple,
+        CASE
+        WHEN b1.weight_multiple = '0' THEN 0
+        WHEN b1.weight_multiple = '1' THEN 1
+        WHEN b1.weight_multiple = '2' THEN 2
+        END weightMultiple,
+        CASE
+        WHEN b1.abnormal_multiple = '0' THEN 0
+        WHEN b1.abnormal_multiple = '1' THEN 1
+        WHEN b1.abnormal_multiple = '2' THEN 2
+        WHEN b1.abnormal_multiple = '3' THEN 3
+        END abnormalMultiple,
+        CASE
+        WHEN b1.omission = '0' THEN 0
+        WHEN b1.omission = '1' THEN 1
+        WHEN b1.omission = '2' THEN 2
+        END omission,
+        CASE
+        WHEN b1.phone_disgust = '0' THEN 0
+        WHEN b1.phone_disgust = '1' THEN 1
+        END phoneDisgust ,
+        CASE
+        WHEN b1.good_intentions = '0' THEN 0
+        WHEN b1.good_intentions = '1' THEN 1
+        END goodIntentions ,
+        CASE
+        WHEN b1.add_wechat = '0' THEN 0
+        WHEN b1.add_wechat = '1' THEN 1
+        END addWechat
+        FROM
+        b_new_takeout b1
+        <where>
+            <if test="storeNo !=null and storeNo!=''">AND b1.store_no = #{storeNo}</if>
+            <if test="takeoutPlatform !=null and takeoutPlatform !=''">AND b1.takeout_platform = #{takeoutPlatform}</if>
+            <if test="date !=null and date !=''">AND b1.create_day = #{date}</if>
+        </where>
+    </select>
+
+    <select id="selectSum" resultType="java.lang.String">
+        SELECT SUM(b1.return_money)
+        FROM b_new_takeout b1
+        WHERE
+        <if test="storeNo !=null and storeNo !=''">b1.store_no = #{storeNo}</if>
+        <if test="takeoutPlatform !=null and takeoutPlatform !=''">AND b1.takeout_platform = #{takeoutPlatform}</if>
+        <if test="date !=null and date !=''">AND b1.create_day = #{date}</if>
+
+
+    </select>
+
+    <select id="selectItem" resultType="com.baimeng.bmmerchant.model.dto.TakeoutVisitItemDTO">
+        SELECT b1.new_takeout_id newTakeoutId,
+        b1.omission omission,
+        b1.store_no storeNo,
+        b1.sys_user_id sysUserId,
+        b1.takeout_date takeoutDate,
+        b1.number number,
+        b1.takeout_platform takeoutPlatform,
+        b1.taste_multiple tasteMultiple,
+        b1.weight_multiple weightMultiple,
+        b1.abnormal_multiple abnormalMultiple,
+        b1.phone_disgust phoneDisgust,
+        b1.good_intentions goodIntentions,
+        b1.add_wechat addWechat,
+        b1.takeout_feedback takeoutFeedback,
+        b1.return_money returnMoney
+        FROM b_new_takeout b1
+        <where>
+            <if test="newtakeoutId != null and newtakeoutId !=''">AND b1.new_takeout_id = #{newtakeoutId}</if>
+        </where>
+    </select>
+
+    <select id="selectMax" resultType="java.lang.Integer">
+        SELECT MAX(number)
+        FROM b_new_takeout
+        WHERE store_no = #{storeNo}
+          AND TO_DAYS(NOW()) = TO_DAYS(create_day)
+          AND takeout_platform = #{takeoutPlatform}
+          AND state = 0
+    </select>
+    <select id="selectSysUser" resultType="java.lang.String">
+        SELECT b1.store_no
+        FROM b_store_sys_user b1
+        WHERE b1.sys_user_id = #{sysUserId}
+    </select>
+    <select id="selectAdminSum" resultType="com.baimeng.bmmerchant.model.vo.VisitListVO">
+        SELECT
+        COUNT( b1.new_takeout_id ) AS takeoutNumber,
+        SUM( b1.return_money ) AS rebateSum,
+        COUNT( CASE WHEN b1.taste_multiple LIKE '0' THEN 1 END ) AS normalTaste,
+        COUNT( CASE WHEN b1.taste_multiple LIKE '1' THEN 1 END ) AS tasteTooLight,
+        COUNT( CASE WHEN b1.taste_multiple LIKE '2' THEN 1 END ) AS tasteToHot,
+        COUNT( CASE WHEN b1.taste_multiple LIKE '3' THEN 1 END ) AS tasteToSalty,
+        COUNT( CASE WHEN b1.weight_multiple LIKE '0' THEN 1 END ) AS normal,
+        COUNT( CASE WHEN b1.weight_multiple LIKE '1' THEN 1 END ) AS fishFew,
+        COUNT( CASE WHEN b1.weight_multiple LIKE '2' THEN 1 END ) AS vegetablesFew,
+        COUNT( CASE WHEN b1.abnormal_multiple LIKE '0' THEN 1 END ) AS noException,
+        COUNT( CASE WHEN b1.abnormal_multiple LIKE '1' THEN 1 END ) AS haveException,
+        COUNT( CASE WHEN b1.abnormal_multiple LIKE '2' THEN 1 END ) AS haveHair,
+
+        COUNT( CASE WHEN b1.omission LIKE '0' THEN 1 END ) AS omissionNull,
+        COUNT( CASE WHEN b1.omission LIKE '1' THEN 1 END ) AS omissionMain,
+        COUNT( CASE WHEN b1.omission LIKE '2' THEN 1 END ) AS omissionTableware,
+
+        COUNT( CASE WHEN b1.abnormal_multiple LIKE '3' THEN 1 END ) AS havecockroach,
+        COUNT( CASE WHEN b1.phone_disgust LIKE '0' THEN 1 END ) AS phoneDisgustYes,
+        COUNT( CASE WHEN b1.phone_disgust LIKE '1' THEN 1 END ) AS phoneDisgustNo,
+        COUNT( CASE WHEN b1.good_intentions LIKE '0' THEN 1 END ) AS goodIntentionsYes,
+        COUNT( CASE WHEN b1.good_intentions LIKE '1' THEN 1 END ) AS goodIntentionsNo,
+        COUNT( CASE WHEN b1.takeout_platform = '0' THEN 1 END ) AS elmTotalNumber,
+        COUNT( CASE WHEN b1.takeout_platform = '1' THEN 1 END ) AS mtTotalNumber
+        FROM
+        b_new_takeout b1
+        <where>
+            <if test="date != null and date != ''">AND b1.create_day = #{date}</if>
+            AND b1.store_no IN <foreach collection="storeNumberList" item="id" open="(" close=")" separator=",">#{id}</foreach>
+        </where>
+    </select>
+
+    <select id="selectAdminDetails" resultType="com.baimeng.bmmerchant.model.dto.VisitDetailsListDTO">
+        SELECT
+        b1.takeout_date AS inputDate,
+        b1.new_takeout_id AS newtakeoutId,
+        b1.takeout_platform AS takeoutPlatform,
+        b1.number AS takeoutNumber,
+        b1.takeout_feedback AS takeoutFeedback,
+        CASE
+        WHEN b1.return_money = '0.00' THEN 0
+        WHEN b1.return_money = '3.00' THEN 3
+        WHEN b1.return_money = '5.00' THEN 5
+        WHEN b1.return_money = '10.00' THEN 10
+        END returnMoney,
+        CASE
+        WHEN b1.taste_multiple = '0' THEN 0
+        WHEN b1.taste_multiple = '1' THEN 1
+        WHEN b1.taste_multiple = '2' THEN 2
+        WHEN b1.taste_multiple = '3' THEN 3
+        END tasteMultiple,
+        CASE
+        WHEN b1.weight_multiple = '0' THEN 0
+        WHEN b1.weight_multiple = '1' THEN 1
+        WHEN b1.weight_multiple = '2' THEN 2
+        END weightMultiple,
+        CASE
+        WHEN b1.abnormal_multiple = '0' THEN 0
+        WHEN b1.abnormal_multiple = '1' THEN 1
+        WHEN b1.abnormal_multiple = '2' THEN 2
+        WHEN b1.abnormal_multiple = '3' THEN 3
+        END abnormalMultiple,
+        CASE
+        WHEN b1.omission = '0' THEN 0
+        WHEN b1.omission = '1' THEN 1
+        WHEN b1.omission = '2' THEN 2
+        END `omission`,
+        CASE
+        WHEN b1.phone_disgust = '0' THEN 0
+        WHEN b1.phone_disgust = '1' THEN 1
+        END phoneDisgust,
+        CASE
+        WHEN b1.good_intentions = '0' THEN 0
+        WHEN b1.good_intentions = '1' THEN 1
+        END goodIntentions ,
+        CASE
+        WHEN b1.add_wechat = '0' THEN 0
+        WHEN b1.add_wechat = '1' THEN 1
+        END addWechat
+        FROM b_new_takeout b1
+        <where>
+
+            b1.store_no IN<foreach collection="storeNumberList" item="id" open="(" close=")" separator=",">#{id}</foreach>
+            <if test="takeoutPlatform !=null and takeoutPlatform !=''">AND b1.takeout_platform = #{takeoutPlatform}</if>
+            <if test="date !=null and date !=''">AND b1.create_day = #{date}</if>
+        </where>
+
+    </select>
+
+    <select id="selectAdminAmount" resultType="java.lang.String">
+        SELECT SUM(b1.return_money)
+        FROM b_new_takeout b1
+        WHERE b1.store_no IN
+        <foreach collection="storeNumberList" item="id" open="(" close=")" separator=",">#{id}</foreach>
+        <if test="takeoutPlatform !=null and takeoutPlatform !=''">AND b1.takeout_platform = #{takeoutPlatform}</if>
+        <if test="date !=null and date !=''">AND b1.create_day = #{date}</if>
+
+    </select>
+</mapper>

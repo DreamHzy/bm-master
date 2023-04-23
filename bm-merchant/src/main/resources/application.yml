@@ -1,0 +1,26 @@
+
+server:
+  port: 15156 #设置端口
+
+spring:
+  redis:
+    database: 2    #1库：运营平台  #2库：商户系统 #3库：支付网关
+
+#系统业务参数
+isys:
+    jwt-secret: ARNXp4MzjOOQqxtv #生成jwt的秘钥。 要求每个系统有单独的秘钥管理机制。
+
+# Swagger配置
+swagger:
+  host:
+  title: 商户系统接口文档
+  description: 商户系统接口文档
+  enabled: true
+  # 禁用swagger时的重定向地址
+  redirect-uri: /
+
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql

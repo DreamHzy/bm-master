@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baimeng.bmservice.mapper.BTaskUserClockTaskMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.baimeng.bmservice.model.BTaskUserClockTask">
+        <id column="clock_task_id" property="clockTaskId" />
+        <result column="clock_id" property="clockId" />
+        <result column="sys_user_id" property="sysUserId" />
+        <result column="task_no" property="taskNo" />
+        <result column="state" property="state" />
+        <result column="remark" property="remark" />
+        <result column="finsh_at" property="finshAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+</mapper>

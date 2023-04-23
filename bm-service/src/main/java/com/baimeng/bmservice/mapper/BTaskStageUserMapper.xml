@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baimeng.bmservice.mapper.BTaskStageUserMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.baimeng.bmservice.model.BTaskStageUser">
+        <id column="task_stage_user_id" property="taskStageUserId" />
+        <result column="task_no" property="taskNo" />
+        <result column="stage_id" property="stageId" />
+        <result column="sys_user_id" property="sysUserId" />
+        <result column="state" property="state" />
+        <result column="effect_at" property="effectAt" />
+        <result column="invalid_at" property="invalidAt" />
+        <result column="created_at" property="createdAt" />
+        <result column="store_no" property="storeNo" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+</mapper>

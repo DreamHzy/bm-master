@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baimeng.bmmerchant.mapper.TaskManagementMapper">
+
+    <select id="selectStore" resultType="com.baimeng.bmmerchant.model.vo.TaskVO">
+        SELECT b1.store_name AS 'storeName', COUNT( DISTINCT b3.sys_user_id ) AS 'holdaPostNumber', COUNT(b2.sys_user_id)- COUNT(b3.sys_user_id) AS 'restNumber', COUNT( CASE WHEN b3.sys_user_id AND b3.state = '1' THEN 1 END ) AS 'waitComplete', COUNT( CASE WHEN b3.sys_user_id AND b3.state = '2' THEN 1 END ) AS 'alreadyComplete', COUNT( CASE WHEN b3.sys_user_id AND b3.state = '3' THEN 1 END ) AS 'overdueComplete'
+        FROM b_store b1
+                 LEFT JOIN b_store_sys_user b2 ON b2.store_no = b1.store_no
+            AND b2.store_no = #{storeNo} AND b2.position!=0
+                LEFT JOIN b_task_user_clock b3
+        ON b3.sys_user_id = b2.sys_user_id AND b3.clock_day_at=#{date}
+    </select>
+
+    <select id="queryFiles" resultType="java.lang.String">
+
+        SELECT url
+        FROM b_file
+        WHERE belong_info_id = #{evaluateFileId}
+          AND state = 1
+          AND belong_info = 'b_task_user_clock_evaluate'
+    </select>
+    <select id="selectToday" resultType="com.baimeng.bmmerchant.model.dto.TodayDTO">
+        SELECT
+            (
+                SELECT
+                    COUNT( DISTINCT b1.sys_user_id )
+                FROM
+                    b_task_user_clock b1
+                        LEFT JOIN b_sys_user b2 ON b2.sys_user_id = b1.sys_user_id
+                        LEFT JOIN b_store_sys_user b3 ON b3.sys_user_id = b2.sys_user_id
+                        AND b3.store_no = #{storeNo}
+            ) AS onDutyAmount,
+            COUNT( b1.sys_user_id ) - (
+                SELECT
+                    COUNT( DISTINCT b1.sys_user_id )
+                FROM
+                    b_task_user_clock b1
+                        LEFT JOIN b_sys_user b2 ON b2.sys_user_id = b1.sys_user_id
+                        LEFT JOIN b_store_sys_user b3 ON b3.sys_user_id = b2.sys_user_id
+                        AND b3.store_no = #{storeNo}
+                        AND b1.clock_day_at = #{date}
+            ) AS restAmount
+        FROM
+            b_store_sys_user b1
+                LEFT JOIN b_sys_user b2 ON b2.sys_user_id = b1.sys_user_id
+        WHERE
+            b1.store_no = #{storeNo} AND b1.position !=0
+    </select>
+    <select id="selectTaskState" resultType="com.baimeng.bmmerchant.model.dto.TaskStateDTO">
+        SELECT
+            COUNT( CASE WHEN b1.state = 0 THEN 1 END ) AS waitComplete,
+            COUNT( CASE WHEN b1.state = 1 THEN 1 END ) AS alreadyComplete,
+            COUNT( CASE WHEN b1.state = 2 THEN 1 END ) AS overdueComplete
+        FROM
+            b_task_user_clock_task b1
+                LEFT JOIN b_store_sys_user b2 ON b1.sys_user_id = b2.sys_user_id
+        WHERE
+            DATE_FORMAT( b1.created_at, '%Y-%m-%d' ) = #{date}
+          AND b2.store_no =#{storeNo}
+         and b2.state = 1
+    </select>
+    <select id="selectDetails" resultType="com.baimeng.bmmerchant.model.dto.TaskListDTO">
+        SELECT
+            b1.sys_user_id AS sysUserId,
+            b1.telphone AS  `number`,
+            b1.realname  AS `name`,
+            ( SELECT COUNT(*) FROM b_task_user_clock_task b3 WHERE b3.state =0  AND DATE_FORMAT( b3.created_at, '%Y-%m-%d' )= #{date} AND b1.sys_user_id=b3.sys_user_id) waitComplete,
+            ( SELECT COUNT(*) FROM b_task_user_clock_task b3 WHERE b3.state =1 AND DATE_FORMAT( b3.created_at, '%Y-%m-%d' )= #{date} AND b1.sys_user_id=b3.sys_user_id) alreadyComplete,
+            ( SELECT COUNT(*) FROM b_task_user_clock_task b3 WHERE b3.state = 2  AND DATE_FORMAT( b3.created_at, '%Y-%m-%d' )= #{date} AND b1.sys_user_id=b3.sys_user_id) overdueComplete,
+            CONCAT(#{url}, b1.avatar_url) 'url'
+        FROM
+            b_sys_user b1
+                LEFT JOIN b_store_sys_user b2 ON b2.sys_user_id = b1.sys_user_id
+        WHERE
+            b2.store_no = #{storeNo}
+          AND b2.position = 1
+          AND b1.state = 1
+          AND b2.state = 1
+        GROUP BY b1.sys_user_id
+    </select>
+
+
+    <select id="onDutyAmount" resultType="java.lang.Integer">
+        SELECT
+          COUNT(a.sys_user_id)
+        FROM
+          (
+            SELECT DISTINCT
+                sys_user_id
+            FROM
+                b_task_user_clock
+                    b_task_user_clock
+            WHERE store_no=#{storeNo}
+              AND	DATE_FORMAT( created_at, '%Y-%m-%d' )=#{date}
+
+        )a
+    </select>
+
+
+
+    <select id="storeSum" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM b_store_sys_user WHERE store_no=#{storeNo} AND position=1 and state =1
+    </select>
+
+</mapper>

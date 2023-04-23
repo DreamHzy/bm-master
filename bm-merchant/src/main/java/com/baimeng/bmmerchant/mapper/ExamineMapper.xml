@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baimeng.bmmerchant.mapper.ExamineMapper">
+
+    <select id="listByProdIds" resultType="com.baimeng.bmservice.model.BProd">
+
+        SELECT
+        *
+        FROM
+        b_prod b
+        WHERE
+        b.prod_id IN
+        <foreach collection="list" index="index" item="item" open="("
+                 separator="," close=")">
+            #{item.prodId}
+        </foreach>
+    </select>
+
+    <select id="examineShopownerList" resultType="com.baimeng.bmmerchant.model.vo.ExamineShopownerListVO">
+        SELECT
+        b1.examine_id 'examinId',
+        b1.apply_time 'applyTime',
+        b1.type 'applyType',
+        b1.`status`,
+        b2.realname 'applyName',
+        b1.other_id 'prodApplyId'
+        FROM
+        b_examine b1
+        LEFT JOIN b_sys_user b2 ON b1.apply_user_id = b2.sys_user_id
+        WHERE b1.apply_user_id =#{sysUserId}
+        and b1.store_no=#{storeNo}
+        <if test="status !=null and status !=''">and b1.`status` = #{status}</if>
+        ORDER BY b1.apply_time DESC
+    </select>
+
+    <select id="queryCountShopwner" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM b_examine b1
+                 LEFT JOIN b_sys_user b2 ON b1.apply_user_id = b2.sys_user_id
+        WHERE b1.apply_user_id = #{sysUserId}
+          AND b1.`status` =#{status}
+          and b1.store_no = #{storeNo}
+    </select>
+
+    <select id="selectSysUser" resultType="java.lang.String">
+        SELECT b1.store_no
+        FROM b_store_sys_user b1
+        WHERE b1.sys_user_id = #{sysUserId}
+    </select>
+
+
+    <select id="examineAdministratorsList" resultType="com.baimeng.bmmerchant.model.vo.ExamineAdministratorsListVO">
+        SELECT
+        b1.examine_id 'examinId',
+        b1.apply_time 'applyTime',
+        b1.type 'applyType',
+        b1.`status`,
+        b2.realname 'applyName',
+        b3.store_name 'storeName',
+        b1.other_id 'prodApplyId'
+        FROM
+        b_examine b1
+        LEFT JOIN b_sys_user b2 ON b1.apply_user_id = b2.sys_user_id
+        LEFT JOIN b_store b3 ON b3.store_no = b1.store_no
+        WHERE b1.store_no IN
+        <foreach collection="list" index="index" item="item" open="("
+                 separator="," close=")">
+            #{item}
+        </foreach>
+        <if test="status !=null and status !=''">
+            <if test="status ==0">   and b1.`status` = #{status}   </if>
+            <if test="status ==1">   and b1.`status` in(1,4) </if>
+        </if>
+        ORDER BY b1.apply_time DESC
+    </select>
+
+
+    <select id="queryCountAdmin" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM
+        b_examine b1
+        WHERE
+        b1.`status` =0
+        and b1.store_no IN
+        <foreach collection="list" index="index" item="item" open="("
+                 separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

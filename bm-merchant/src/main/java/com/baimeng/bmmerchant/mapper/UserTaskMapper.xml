@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baimeng.bmmerchant.mapper.UserTaskMapper">
+
+
+    <select id="queryList" resultType="com.baimeng.bmmerchant.model.vo.UserTaskStageVO">
+        SELECT DISTINCT btsu.stage_id,
+                        btsu.sys_user_id,
+                        btsu.store_no,
+                        bts.end_time,
+                        bts.start_time
+        FROM b_task_stage_user btsu
+                 LEFT JOIN b_task_stage bts ON btsu.stage_id = bts.stage_id
+        WHERE bts.state = 1
+          and btsu.state in (1, 3)
+    </select>
+
+
+    <select id="bTaskStageUserList" resultType="com.baimeng.bmservice.model.BTaskStageUser">
+
+        SELECT
+        *
+        FROM
+        b_task_stage_user b
+        WHERE
+        b.store_no IN
+        <foreach collection="list" index="index" item="item" open="("
+                 separator="," close=")">
+            #{item.storeNo}
+        </foreach>
+        AND b.stage_id IN
+        <foreach collection="list" index="index" item="item" open="("
+                 separator="," close=")">
+            #{item.stageId}
+        </foreach>
+
+        AND b.sys_user_id IN
+        <foreach collection="list" index="index" item="item" open="("
+                 separator="," close=")">
+            #{item.sysUserId}
+        </foreach>
+        AND b.state in(1,3)
+
+    </select>
+
+
+    <update id="updateTaskStageUserEffect">
+        UPDATE b_task_stage_user
+        SET state = 1
+        WHERE TO_DAYS(effect_at) = TO_DAYS(
+                NOW())
+    </update>
+
+    <update id="updateTaskStageUserInvalid">
+
+        UPDATE b_task_stage_user
+        SET state = 0
+        WHERE TO_DAYS(invalid_at) = TO_DAYS(
+                NOW())
+    </update>
+
+
+</mapper>

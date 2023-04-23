@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baimeng.bmservice.mapper.BNewTakeoutMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.baimeng.bmservice.model.BNewTakeout">
+        <id column="new_takeout_id" property="newTakeoutId" />
+        <result column="store_no" property="storeNo" />
+        <result column="sys_user_id" property="sysUserId" />
+        <result column="takeout_date" property="takeoutDate" />
+        <result column="number" property="number" />
+        <result column="taste_multiple" property="tasteMultiple" />
+        <result column="weight_multiple" property="weightMultiple" />
+        <result column="abnormal_multiple" property="abnormalMultiple" />
+        <result column="phone_disgust" property="phoneDisgust" />
+        <result column="good_intentions" property="goodIntentions" />
+        <result column="add_wechat" property="addWechat" />
+        <result column="takeout_feedback" property="takeoutFeedback" />
+        <result column="return_money" property="returnMoney" />
+        <result column="create_day" property="createDay" />
+        <result column="create_at" property="createAt" />
+        <result column="update_at" property="updateAt" />
+        <result column="state" property="state" />
+    </resultMap>
+
+</mapper>

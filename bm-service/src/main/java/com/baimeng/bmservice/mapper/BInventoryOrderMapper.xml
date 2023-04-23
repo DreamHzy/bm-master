@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baimeng.bmservice.mapper.BInventoryOrderMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.baimeng.bmservice.model.BInventoryOrder">
+        <id column="inventory_order_id" property="inventoryOrderId" />
+        <result column="store_no" property="storeNo" />
+        <result column="applicant" property="applicant" />
+        <result column="apply_type" property="applyType" />
+        <result column="prod_amount" property="prodAmount" />
+        <result column="price_total_amount" property="priceTotalAmount" />
+        <result column="status" property="status" />
+        <result column="apply_time" property="applyTime" />
+        <result column="examine_time" property="examineTime" />
+        <result column="examine_user_id" property="examineUserId" />
+        <result column="complete_time" property="completeTime" />
+    </resultMap>
+
+</mapper>

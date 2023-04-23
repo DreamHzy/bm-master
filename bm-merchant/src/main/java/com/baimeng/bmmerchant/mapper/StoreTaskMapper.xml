@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baimeng.bmmerchant.mapper.StoreTaskMapper">
+    <select id="queryList" resultType="com.baimeng.bmservice.model.BTaskStageUser">
+        SELECT *
+        FROM b_task_stage_user
+        WHERE sys_user_id = #{sysUserId}
+        AND state = 1
+        AND effect_at = #{day}
+        AND stage_id in
+        <foreach item="item" index="index" collection="bTaskStageList" open="(" separator="," close=")">
+            #{item.stageId}
+        </foreach>
+    </select>
+
+    <select id="queryBTaskUserClockTaskList" resultType="com.baimeng.bmservice.model.BTaskUserClockTask">
+        SELECT *
+        FROM b_task_user_clock_task
+        WHERE
+        AND clock_id in
+        <foreach item="item" index="index" collection="bTaskUserClockList" open="(" separator="," close=")">
+            #{item.clockId}
+        </foreach>
+    </select>
+
+    <select id="tasklistVOList" resultType="com.baimeng.bmmerchant.model.vo.TasklistVO">
+        SELECT btuc.clock_id,
+               bts.`name` 'stageName', CONCAT(#{url},bts.image_url) 'imageUrl', CONCAT(#{url},bts.icon_url) 'iconUrl', bts.end_time,
+               bts.start_time,
+               btuc.state 'status', (SELECT COUNT(*)
+                                     FROM b_task_user_clock_task btuck
+                                     WHERE btuck.clock_id = btuc.clock_id
+        ) total,
+               (SELECT COUNT(*)
+                FROM b_task_user_clock_task btuck
+                WHERE btuck.clock_id = btuc.clock_id
+                  AND btuck.state in (1, 2)) finshTotal
+        FROM b_task_user_clock btuc
+                 LEFT JOIN b_task_stage bts ON btuc.stage_id = bts.stage_id
+        WHERE btuc.sys_user_id = #{sysUserId}
+          AND DATE_FORMAT(btuc.created_at, '%Y-%m-%d') = #{day}
+          AND btuc.store_no = #{storeNo}
+    </select>
+
+    <select id="taskDetailListVOS" resultType="com.baimeng.bmmerchant.model.vo.TaskDetailListVO">
+
+        SELECT btuct.clock_task_id 'taskUserClockTaskId', bt.task_no 'taskNo', bt.describe,
+               bt.`name` 'taskName', btuct.remark,
+               bt.image_url 'imageUrl', DATE_FORMAT(btuct.created_at, '%Y-%m-%d') 'createdAt', btuct.state 'status', btuct.end_at 'endAt', IFNULL(btuct.finsh_at,'') 'finshTime', IFNULL(btuct.remark,'') 'remark', (SELECT btc.course_id
+                                                                                                                                                                                                                     FROM b_task_course btc
+                                                                                                                                                                                                                     WHERE btc.task_no = bt.task_no ) 'courseId'
+        FROM b_task_user_clock_task btuct
+                 LEFT JOIN b_task bt ON btuct.task_no = bt.task_no
+        WHERE clock_id = #{clockId}
+    </select>
+
+    <select id="distributionTaskListDetailVOS"
+            resultType="com.baimeng.bmmerchant.model.vo.DistributionTaskListDetailVO">
+
+        SELECT btsu.task_stage_user_id,
+               btsu.stage_id,
+               btsu.task_no,
+               bt.`name`,
+               btsu.state,
+               btsu.effect_at,
+               btsu.invalid_at
+        FROM b_task_stage_user btsu
+                 LEFT JOIN b_task bt ON btsu.task_no = bt.task_no
+        WHERE btsu.state IN (
+                             1,
+                             2,
+                             3
+            )
+          AND btsu.store_no = #{storeNo}
+          AND btsu.sys_user_id = #{sysUserId}
+
+
+    </select>
+
+
+    <select id="queryTaskBySceneId" resultType="com.baimeng.bmmerchant.model.vo.QueryTaskBySceneIdVO">
+
+        SELECT task_no 'taskNo', `name`
+        FROM b_task
+        WHERE scene_id = #{sceneId}
+          AND store_no = #{storeNo}
+          AND state = 1
+          AND stage_id = #{stageId}
+          AND task_no NOT IN (
+            SELECT task_no
+            FROM b_task_stage_user
+            WHERE sys_user_id = #{userId}
+              AND store_no = #{storeNo}
+              AND stage_id = #{stageId}
+              AND state IN (1, 2, 3)
+        )
+
+    </select>
+</mapper>

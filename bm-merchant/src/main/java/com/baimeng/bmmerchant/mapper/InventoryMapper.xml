@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baimeng.bmmerchant.mapper.InventoryMapper">
+
+    <select id="selectAdminInventory" resultType="java.lang.String">
+        SELECT b1.store_no
+        FROM b_store_sys_user b1
+        WHERE b1.sys_user_id = #{sysUserId}
+    </select>
+    <select id="selectAdminCategory" resultType="com.baimeng.bmmerchant.model.vo.AdminInventoryVO">
+        SELECT b1.prod_name                                               prodName,
+               ANY_VALUE(CONCAT(b1.warehousing_count - b1.collect_count)) inventory,
+               b1.unit                                                    unit,
+               SUM((b1.warehousing_count - b1.collect_count) * b1.price)  totalAmount,
+               b1.price                                                   `price`,
+               CONCAT(#{url}, b1.image)                        `image`,
+               b1.prod_id                                                 prodId
+        FROM b_prod b1
+        WHERE b1.store_no = #{storeNo}
+          AND b1.state = 1
+        GROUP BY b1.prod_id
+    </select>
+    <select id="selectTest" resultType="java.lang.String">
+        SELECT CONCAT(SUM(b1.amount) / 30)
+        FROM b_prod_apply_details b1
+        WHERE b1.create_time BETWEEN #{startDate} AND #{createTime}
+          AND b1.prod_id = #{prodId}
+    </select>
+    <select id="selectTests" resultType="com.baimeng.bmmerchant.model.dto.ProdAverageDTO">
+        SELECT prod_id                         `prodId`,
+               TRUNCATE(SUM(quantity) / 30, 2) `dayAverage`
+        FROM b_prod_history
+        WHERE DATE_SUB(CURDATE(), INTERVAL 30 DAY) <![CDATA[ <= ]]> date (created_at)
+          AND type = 2
+        GROUP BY prod_id
+    </select>
+
+
+    <select id="prodWriteStockVOS" resultType="com.baimeng.bmmerchant.model.vo.ProdWriteStockVO">
+        SELECT b2.prod_id 'prodId', SUM( b2.amount ) 'amount'
+        FROM b_prod_apply b1
+                 LEFT JOIN b_prod_apply_details b2 ON b1.prod_apply_id = b2.prod_apply_id
+        WHERE b1.`status` IN (0, 1)
+          AND b2.prod_id = #{prodId}
+    </select>
+
+
+    <select id="selectQuery" resultType="java.lang.String">
+        SELECT TRUNCATE(SUM(quantity) / 30, 2) `dayAverage`
+        FROM b_prod_history
+        WHERE DATE_SUB(CURDATE(), INTERVAL 30 DAY) <![CDATA[ <= ]]> date (created_at)
+          AND type = 2
+          AND prod_id =#{prodId}
+    </select>
+
+    <select id="selectInventory" resultType="com.baimeng.bmmerchant.model.dto.CategoryNameDTO">
+        SELECT b2.prod_category_id prodCategoryId, b2.name name
+        FROM b_prod_category b2
+        WHERE b2.status = 1
+          AND b2.store_no = #{storeNo}
+        ORDER BY b2.sort
+    </select>
+    <select id="selectCategoryProd" resultType="com.baimeng.bmmerchant.model.dto.CategoryProdDTO">
+        SELECT b1.prod_category_id                                        prodCategoryId,
+               b1.prod_id                                                 prodId,
+               b1.prod_name                                               prodName,
+               b1.unit                                                    unit,
+               CONCAT(#{url}, b1.image)                                   image,
+               ANY_VALUE(CONCAT(b1.warehousing_count - b1.collect_count)) inventory,
+               b1.price                                                   price
+        FROM b_prod b1
+        WHERE b1.store_no = #{storeNo}
+          AND b1.state = 1
+    </select>
+    <select id="selectName" resultType="com.baimeng.bmmerchant.model.vo.CategoryProdsVO">
+        SELECT b1.prod_category_id                                        prodCategoryId,
+               b1.prod_id                                                 prodId,
+               b1.prod_name                                               prodName,
+               b1.unit                                                    unit,
+               b1.price                                                   price,
+               CONCAT(#{url}, b1.image)                                   image,
+               ANY_VALUE(CONCAT(b1.warehousing_count - b1.collect_count)) inventory
+        FROM b_prod b1
+        WHERE b1.prod_name LIKE CONCAT('%', #{prodName}, '%')
+          AND b1.state = 1
+    </select>
+    <select id="selectDetails" resultType="com.baimeng.bmmerchant.model.vo.AdminInventoryVO">
+        SELECT b1.prod_name                                               prodName,
+               b1.unit                                                    unit,
+               ANY_VALUE(CONCAT(b1.warehousing_count - b1.collect_count)) inventory,
+               SUM((b1.warehousing_count - b1.collect_count) * b1.price)  totalAmount,
+               b1.price                                                   `price`,
+               CONCAT(#{url}, b1.image)                        `image`,
+               b1.prod_id                                                 prodId
+        FROM b_prod b1
+        WHERE b1.prod_id = #{prodId}
+          AND b1.state = 1
+        GROUP BY b1.prod_id
+    </select>
+    <select id="selectDetailsList" resultType="com.baimeng.bmmerchant.model.dto.InventoryDetailsDTO">
+        SELECT b1.created_at                                                                                  createdTime,
+               IF(b1.type = 1, '入库', '出库')                                                                    type,
+               b1.stock                                                                                       inventory,
+               (SELECT b2.realname FROM b_sys_user b2 WHERE b2.sys_user_id = b1.sys_user_id AND b2.state = 1) sysUserId,
+               b1.quantity                                                                                    quantity,
+               (SELECT CONCAT(b1.quantity * b3.price)
+                FROM b_prod b3
+                WHERE b3.prod_id = b1.prod_id
+                  AND b3.state = 1)                                                                           price
+        FROM b_prod_history b1
+        WHERE b1.created_at BETWEEN #{createTime} AND #{endTime}
+          AND b1.prod_id = #{prodId}
+    </select>
+    <select id="selectProdApply" resultType="com.baimeng.bmmerchant.model.dto.ConfirmShowTwoDTO">
+        SELECT b1.prod_apply_id                                                              prodApplyId,
+               b1.apply_time                                                                 createdTime,
+               b1.status                                                                     status,
+               (SELECT b2.store_name FROM b_store b2 WHERE b2.store_no = b1.store_no)        storeName,
+               (SELECT b3.realname FROM b_sys_user b3 WHERE b3.sys_user_id = b1.sys_user_id) sysUserName,
+               b1.apply_type                                                                 applyType
+        FROM b_prod_apply b1
+        WHERE b1.prod_apply_id = #{prodApplyId}
+    </select>
+    <select id="selectConfirmList" resultType="com.baimeng.bmmerchant.model.dto.ConfirmListTwoDTO">
+        SELECT b1.prod_id                                                                     prodId,
+               b1.prod_apply_id                                                               prodApplyId,
+               b1.prod_apply_details_id                                                       prodApplyDetailsId,
+               (SELECT b2.prod_name FROM b_prod b2 WHERE b2.prod_id = b1.prod_id)             prodName,
+               (SELECT b5.unit FROM b_prod b5 WHERE b5.prod_id = b1.prod_id)                  unit,
+               b1.amount                                                                      prodAmount,
+               b1.price                                                                       price,
+               (SELECT CONCAT(#{url}, b3.image) FROM b_prod b3 WHERE b3.prod_id = b1.prod_id) image,
+               (SELECT ANY_VALUE(CONCAT(b4.warehousing_count - b4.collect_count))
+                FROM b_prod b4
+                WHERE b4.prod_id = b1.prod_id)                                                inventory
+        FROM b_prod_apply_details b1
+        WHERE b1.prod_apply_id = #{prodApplyId}
+    </select>
+    <select id="selectById" resultType="java.lang.Integer">
+        SELECT b1.prod_apply_details_id
+        FROM b_prod_apply_details b1
+        WHERE b1.prod_apply_details_id = #{prodApplyDetailsId}
+    </select>
+    <select id="selectChooseProd" resultType="com.baimeng.bmmerchant.model.vo.ChooseProdVO">
+        SELECT prod_id prodId , prod_name prodName FROM b_prod
+        <where>
+            <if test="integerList.size > 0 and integerList!=null">
+                prod_id NOT IN
+                <foreach collection="integerList" item="id" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+            AND state = 1
+            <if test="prodName !=null and prodName !=''">
+                AND prod_name LIKE CONCAT('%',#{prodName},'%')
+            </if>
+        </where>
+    </select>
+    <select id="selectNotInId" resultType="java.lang.Integer">
+        SELECT prod_id
+        FROM b_prod_apply_details
+        WHERE prod_apply_id = 13
+        GROUP BY prod_id;
+    </select>
+
+</mapper>

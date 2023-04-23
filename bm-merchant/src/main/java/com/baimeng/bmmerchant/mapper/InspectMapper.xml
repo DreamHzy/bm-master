@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baimeng.bmmerchant.mapper.InspectMapper">
+
+    <select id="selectCategory" resultType="com.baimeng.bmmerchant.model.vo.CategoryVO">
+        SELECT
+            b1.category_id AS categoryId,
+            CONCAT(#{url}, b1.image) 'image',
+            b1.`name` AS categoryName,
+            (SELECT SUM( b2.evaluate_score) FROM b_inspect_evaluate b2 WHERE b2.category_id = b1.category_id 	AND b2.created_day = #{createDay} AND  b2.state = 1  )AS evaluateScore
+        FROM
+            b_inspect_category b1
+
+        WHERE
+            b1.store_no =#{storeNo}
+    </select>
+
+    <select id="selectContenct" resultType="com.baimeng.bmmerchant.model.vo.ContenctVO">
+        SELECT
+        b1.contenct AS contenct,
+               b1.contenct_id AS contenctId,
+               b2.evaluate_score AS evaluateScore,
+               b2.evaluate_assess AS evaluateAssess
+        FROM b_inspect_contenct b1
+        LEFT JOIN b_inspect_evaluate b2 ON b2.content_id = b1.contenct_id
+        WHERE  b1.state = '1' AND b2.state = '1'AND
+            b2.evaluate_id = #{evaluateId}
+
+    </select>
+
+    <select id="selectImage" resultType="com.baimeng.bmmerchant.model.dto.FileUrlDTO">
+        SELECT CONCAT(#{url},b1.url) AS url,b1.notice_file_id AS id
+        FROM b_file b1
+        WHERE b1.belong_info_id = #{categoryId}
+          AND b1.state = '1'
+    </select>
+    <select id="selectContenctId" resultType="com.baimeng.bmmerchant.model.vo.ContenctVO">
+        SELECT b1.contenct_id AS contenctId , b1.contenct AS contenct FROM b_inspect_contenct b1 WHERE  b1.category_id=#{categoryId}
+    </select>
+
+    <select id="selectRemoveId" resultType="com.baimeng.bmservice.model.BFile">
+        SELECT b1.notice_file_id FROM b_file b1 LEFT JOIN b_inspect_evaluate b2 ON b2.content_id = b1.belong_info_id AND b2.evaluate_id=#{evaluateId}
+    </select>
+    <select id="selectAdminCategory" resultType="java.lang.String">
+        SELECT b1.store_no FROM b_store_sys_user b1 WHERE b1.sys_user_id=#{sysUserId}
+    </select>
+    <select id="selectAdmin" resultType="com.baimeng.bmmerchant.model.vo.CategoryVO">
+
+        SELECT
+        b1.category_id AS categoryId,
+        b1.`name` AS categoryName,
+        CONCAT(#{url}, b1.image) 'image',
+        (SELECT SUM( b2.evaluate_score) FROM b_inspect_evaluate b2 WHERE b2.category_id = b1.category_id 	AND b2.created_day = #{createDay} AND  b2.state = 1  )AS evaluateScore
+        FROM
+        b_inspect_category b1
+        WHERE
+        b1.store_no IN <foreach collection="list" item="id" open="(" close=")" separator=",">#{id}</foreach>
+    </select>
+
+    <select id="contenctDetailVOList" resultType="com.baimeng.bmmerchant.model.vo.ContenctDetailVO">
+
+        SELECT
+            b1.contenct_id 'contenctId',
+            b1.contenct
+        FROM
+            b_inspect_contenct b1
+        WHERE
+            b1.state = 1
+          AND b1.category_id = #{categoryId}
+          AND b1.store_no = #{storeNo}
+
+    </select>
+
+
+    <select id="queryList" resultType="com.baimeng.bmservice.model.BInspectEvaluate">
+
+        SELECT
+            *
+        FROM
+            b_inspect_evaluate b1
+        WHERE
+            b1.state = 1
+          AND b1.created_day = #{day}
+        AND b1.contenct_id IN
+        <foreach collection="list" index="index" item="item" open="("
+                 separator="," close=")">
+            #{item.contenctId}
+        </foreach>
+
+
+    </select>
+
+
+    <select id="queryFile" resultType="com.baimeng.bmmerchant.model.dto.FileUrlDTO">
+
+        SELECT
+        b1.belong_info_id 'belongInfoId',
+        CONCAT(#{url},b1.url)'url'
+        FROM
+        b_file b1
+        WHERE
+        b1.state = 1
+        AND b1.belong_info = 'b_inspect_evaluate'
+        AND b1.belong_info_id IN
+        <foreach collection="list" index="index" item="item" open="("
+                 separator="," close=")">
+            #{item.evaluateId}
+        </foreach>
+
+    </select>
+
+
+    <update id="updateByContenctIdAndCategoryIdAndDay">
+
+        UPDATE b_inspect_evaluate
+        SET state = 0,
+        updated_at = NOW()
+        WHERE category_id = #{categoryId}
+          AND created_day=#{day}
+          AND contenct_id IN
+        <foreach collection="updateOrAddAssessDetailDTOS" index="index" item="item" open="("
+                 separator="," close=")">
+            #{item.contenctId}
+        </foreach>
+    </update>
+</mapper>

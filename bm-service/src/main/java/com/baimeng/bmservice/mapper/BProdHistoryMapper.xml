@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baimeng.bmservice.mapper.BProdHistoryMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.baimeng.bmservice.model.BProdHistory">
+        <id column="prod_history_id" property="prodHistoryId" />
+        <result column="prod_id" property="prodId" />
+        <result column="inventory_details_id" property="inventoryDetailsId" />
+        <result column="warehousing" property="warehousing" />
+        <result column="receiving" property="receiving" />
+        <result column="quantity" property="quantity" />
+        <result column="type" property="type" />
+        <result column="stock" property="stock" />
+        <result column="sys_user_id" property="sysUserId" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+</mapper>
