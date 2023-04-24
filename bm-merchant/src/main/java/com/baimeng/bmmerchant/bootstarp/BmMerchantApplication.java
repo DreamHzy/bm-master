@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class BmMerchantApplication {
 
     public static void main(String[] args) {
+
         SpringApplication.run(BmMerchantApplication.class, args);
 
     }
